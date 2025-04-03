@@ -54,6 +54,55 @@ ggplot() +
     theme_minimal()
 ```
 
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+
+# Read the CSV file
+london_data <- read_csv("London_Population_History.csv")
+
+# Rename columns to remove spaces (if needed)
+colnames(london_data) <- c("Year", "Population_Size", "Era")
+
+# Convert Year to numeric, replacing 'Pre-43 AD' with -43
+london_data <- london_data %>%
+  mutate(Year = as.numeric(str_replace(Year, "Pre-43 AD", "-43")),
+         Population_Size = as.numeric(str_replace(Population_Size, "-", "")))  # Remove dashes from ranges
+
+# Define demographic transition periods
+transitions <- data.frame(
+  xmin = c(-43, 410, 1500, 1800, 1900, 2000),
+  xmax = c(410, 1500, 1800, 1900, 2000, 2023),
+  label = c("Ancient & Roman", "Medieval", "Early Modern", "Industrial", "20th Century", "21st Century")
+)
+
+# Create the plot
+# Create the plot
+ggplot(london_data, aes(x = Year, y = Population_Size)) +
+  geom_line(color = "blue", linewidth = 1) +  # Fix: Changed `size` to `linewidth`
+  geom_point(color = "red", size = 2) +
+  
+  # Add demographic transition shading
+  geom_rect(data = transitions, 
+            aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = Inf, fill = label), 
+            alpha = 0.2, inherit.aes = FALSE) +
+  
+  # Titles and labels
+  labs(title = "Demographic Transition of London, UK",
+       subtitle = "Population Growth and Key Historical Eras",
+       x = "Year",
+       y = "Population",
+       fill = "Demographic Transition",  # Legend title
+       caption = "Data Source: Compiled Historical Estimates") +
+  
+  # Theme adjustments
+  theme_minimal() +
+  theme(legend.position = "right")  # Move legend to the right
+
+```
+
+
 ## Migrations
 
 ```{r,warning=FALSE}
