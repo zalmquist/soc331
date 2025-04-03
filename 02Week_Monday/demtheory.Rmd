@@ -1,0 +1,96 @@
+---
+title: "Demographic Equation"
+author: "YOUR NAME HERE"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+check_and_install <- function(pkg) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+```
+
+## Demographic Transition Theory
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+
+# Create data frame with London's population data
+london_population <- tibble(
+    Year = c(100, 1300, 1600, 1715, 1760, 1801, 1851, 1901, 1939, 1981, 2015, 2023),
+    Population = c(35000, 80000, 200000, 630000, 740000, 1011157, 2685000, 6226494, 8600000, 6608598, 8630000, 8900000)
+)
+
+# Define Demographic Transition Model (DTM) stages
+dtm_stages <- tibble(
+    Stage = c("Stage 1: Pre-Industrial", "Stage 2: Early Industrial", 
+              "Stage 3: Mature Industrial", "Stage 4: Post-Industrial"),
+    Start_Year = c(100, 1760, 1901, 1981),
+    End_Year = c(1760, 1901, 1981, 2023)
+)
+
+# Plot
+ggplot() +
+    # Shaded regions for DTM stages
+    geom_rect(data = dtm_stages, 
+              aes(xmin = Start_Year, xmax = End_Year, ymin = -Inf, ymax = Inf, fill = Stage), 
+              alpha = 0.2) +
+    # Line plot of population over time
+    geom_line(data = london_population, aes(x = Year, y = Population), color = "blue", size = 1.2) +
+    geom_point(data = london_population, aes(x = Year, y = Population), color = "red", size = 3) +
+    # Labels and theme
+    labs(title = "London's Population Growth & Demographic Transition Stages",
+         x = "Year",
+         y = "Population",
+         fill = "Demographic Transition Stage") +
+    scale_y_continuous(labels = scales::comma) +
+    theme_minimal()
+```
+
+## Migrations
+
+```{r,warning=FALSE}
+# Check and install ggrepel
+check_and_install("ggrepel")
+check_and_install("sf")
+
+load("kc_migrationdata.rda")
+
+ggplot() +
+  # Base map of US counties with a black background
+  geom_sf(data = us_counties, fill = "gray30", color = "gray60", size = 0.1) +
+  # Color counties by migration volume
+  geom_sf(data = migration_map, aes(fill = estimate), color = "black", size = 0.2) +
+  # Add labels for top 10 migration counties (bold, white text)
+  geom_text_repel(data = top_labels, 
+                  aes(x = long, y = lat, label = FULL2_NAME),
+                  size = 4, fontface = "bold", color = "white",
+                  box.padding = 0.5) +
+  # Titles & legend
+  scale_fill_viridis_c(option = "magma", trans = "log", na.value = "gray30") +
+  labs(title = "Migration from King County, WA to Other US Counties",
+       subtitle = "Colored by Migration Volume",
+       fill = "Migration Volume") +
+  # Make background black
+  theme_minimal(base_family = "Arial") +
+  theme(
+    panel.background = element_rect(fill = "black", color = "black"),
+    plot.background = element_rect(fill = "black", color = "black"),
+    legend.background = element_rect(fill = "black"),
+    legend.text = element_text(color = "white"),
+    legend.title = element_text(color = "white", face = "bold"),
+    axis.text = element_text(color = "white"),
+    plot.title = element_text(color = "white", face = "bold", size = 16),
+    plot.subtitle = element_text(color = "white", size = 12)
+  )
+```
+
+
+
